@@ -8,7 +8,6 @@ import TransfersHeader from './TransfersHeader';
 import {LoaderSegment, PlaceholderSegment} from '../Shared';
 
 import './Transfers.css';
-import { UserTransfers, TransferFile } from '../../types/transfers';
 
 const Transfers = ({ direction, server }) => {
   const [connecting, setConnecting] = useState(true);
