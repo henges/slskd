@@ -16,7 +16,7 @@ import {
 } from 'semantic-ui-react';
 import { Direction as TransferDirection, TransferFile } from '../../types/transfers';
 
-const getColor = (state): {color?: SemanticCOLORS} => {
+const getColor = (state: string): {color?: SemanticCOLORS} => {
   switch(state) {
   case 'InProgress':
     return { color: 'blue' }; 
@@ -34,10 +34,10 @@ const getColor = (state): {color?: SemanticCOLORS} => {
   }
 };
 
-const isRetryableState = (state) => getColor(state).color === 'red';
-const isQueuedState = (state) => state.includes('Queued');
+const isRetryableState = (state: string) => getColor(state).color === 'red';
+const isQueuedState = (state: string) => state.includes('Queued');
 
-const formatBytesTransferred = ({ transferred, size }) => {
+const formatBytesTransferred = ({ transferred, size }: {transferred: number, size: number }) => {
   const [s, sExt] = formatBytes(size, 1).split(' ');
   const t = formatBytesAsUnit(transferred, 1, sExt);
 
