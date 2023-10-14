@@ -11,6 +11,9 @@ const api = axios.create({
 api.interceptors.request.use(config => {
   const token = session.getToken();
 
+  if (!config.headers) {
+    return config;
+  }
   config.headers['Content-Type'] = 'application/json';
 
   if (!session.isPassthroughEnabled() && token) {
@@ -26,7 +29,7 @@ api.interceptors.response.use(response => {
   if (error.response.status === 401 && !['/session', '/server', '/application'].includes(error.response.config.url)) {
     console.debug('received 401 from api route, logging out');
     session.logout();
-    window.location.reload(true);
+    window.location.reload();
 
     return Promise.reject(error);
   } 
