@@ -7,24 +7,14 @@ import {
   Icon,
 } from 'semantic-ui-react';
 
-import TransferList, { OnSelectionChangeArgs } from './TransferList';
-import { UserTransfers, TransferFile, TransferDirectory, Direction } from '../../types/transfers';
+import TransferList from './TransferList';
 
-type TransferGroupProps = {
-  user: UserTransfers;
-  direction: Direction;
-  retry: ({ file, suppressStateChange }: { file: TransferFile, suppressStateChange: boolean }) => Promise<void>
-  // more...
-}
+const TransferGroup = ({user, direction}) => {
 
-type FileInDirectory = { directory: string, filename: string };
+  const [selections, setSelections] = useState(new Set());
+  const [isFolded, setIsFolded] = useState(false);
 
-const TransferGroup = ({user, direction}: TransferGroupProps) => {
-
-  const [selections, setSelections] = useState<Set<string>>(new Set());
-  const [isFolded, setIsFolded] = useState<boolean>(false);
-
-  const onSelectionChange = (...args: OnSelectionChangeArgs[]) => {
+  const onSelectionChange = (...args) => {
     const newSelections = new Set([...selections]);
     args.forEach(a => {
       const obj = JSON.stringify({ directory: a.directory, filename: a.file.filename });
@@ -34,10 +24,10 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
     setSelections(newSelections);
   };
 
-  const isSelected = (directoryName: string, file: TransferFile) => 
+  const isSelected = (directoryName, file) => 
     selections.has(JSON.stringify({ directory: directoryName, filename: file.filename }));
 
-  const removeFileSelection = (file: TransferFile) => {
+  const removeFileSelection = (file) => {
 
     const match = Array.from(selections)
       .map(s => JSON.parse(s))
@@ -50,21 +40,21 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
     }
   };
 
-  const retryAll = async (selected: TransferFile[]) => {
+  const retryAll = async (selected) => {
     await Promise.all(selected.map(file => retry(file)));
   };
 
-  const cancelAll = async (direction: Direction, username: string, selected: TransferFile[]) => {
+  const cancelAll = async (direction, username, selected) => {
     await Promise.all(selected.map(file => transfers.cancel({ direction, username, id: file.id})));
   };
 
-  const removeAll = async (direction: Direction, username: string, selected: TransferFile[]) => {
+  const removeAll = async (direction, username, selected) => {
     await Promise.all(selected.map(file => 
       transfers.cancel({ direction, username, id: file.id, remove: true })
         .then(() => removeFileSelection(file))));
   };
 
-  const retry = async (file: TransferFile) => {
+  const retry = async (file) => {
     const { username, filename, size } = file;
         
     try {
@@ -74,7 +64,7 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
     }
   };
 
-  const fetchPlaceInQueue = async (file: TransferFile) => {
+  const fetchPlaceInQueue = async (file) => {
     const { username, id } = file;
 
     try {
@@ -91,16 +81,13 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
   const selected = useMemo(() => {
     
     return [...selections]
-      .map(s => {
-        console.log(s);
-        return JSON.parse(s) as FileInDirectory;
-      })
+      .map(s => JSON.parse(s))
       .map(s => user
         .directories
         .find(d => d.directory === s.directory)?.files
         .find(f => f.filename === s.filename)
       )
-      .filter(s => s !== undefined) as TransferFile[];
+      .filter(s => s !== undefined);
   }, [selections])
   const all = selected.length > 1 ? ' Selected' : '';
       

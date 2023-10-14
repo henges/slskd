@@ -1,4 +1,4 @@
-export const formatSeconds = (seconds: number) =>
+export const formatSeconds = (seconds) =>
 {
   if (isNaN(seconds)) return '';
   var date = new Date(1970,0,1);
@@ -9,17 +9,17 @@ export const formatSeconds = (seconds: number) =>
   return date.toTimeString().replace(/.*(\d{2}:\d{2}).*/, '$1');
 };
 
-export const formatBytesAsUnit = (bytes: number, decimals = 2, unit: string) => {
+export const formatBytesAsUnit = (bytes, decimals = 2, unit) => {
   if (unit === 'B') return bytes + ' ' + unit;
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes: Record<string, number> = {'KB': 1, 'MB': 2, 'GB': 3, 'TB': 4, 'PB': 5, 'EB': 6, 'ZB': 7, 'YB': 8};
+  const sizes = {'KB': 1, 'MB': 2, 'GB': 3, 'TB': 4, 'PB': 5, 'EB': 6, 'ZB': 7, 'YB': 8};
 
   return parseFloat((bytes / Math.pow(k, sizes[unit])).toFixed(dm));
 };
 
-export const formatBytes = (bytes: number, decimals = 2) => {
+export const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return '0 B';
 
   const k = 1024;
@@ -31,16 +31,16 @@ export const formatBytes = (bytes: number, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
-export const formatDate = (date: number) => {
+export const formatDate = (date) => {
   return new Date(date).toLocaleString();
 };
 
-export const getFileName = (fullPath: string) => {
+export const getFileName = (fullPath) => {
 
   return fullPath.split('\\').pop()?.split('/').pop() || "";
 };
 
-export const getDirectoryName = (fullPath: string) => {
+export const getDirectoryName = (fullPath) => {
   let path = fullPath;
 
   if (path.lastIndexOf('\\') > 0) {
@@ -54,7 +54,7 @@ export const getDirectoryName = (fullPath: string) => {
   return path;
 };
 
-export const formatAttributes = ({ bitRate, isVariableBitRate, bitDepth, sampleRate }: {bitRate?: number, isVariableBitRate: boolean, bitDepth?: number, sampleRate?: number}) => {
+export const formatAttributes = ({ bitRate, isVariableBitRate, bitDepth, sampleRate }) => {
   const isLossless = !!sampleRate && !!bitDepth;
 
   if (isLossless) {
@@ -68,15 +68,9 @@ export const formatAttributes = ({ bitRate, isVariableBitRate, bitDepth, sampleR
   return bitRate ? `${bitRate} Kbps` : '';
 };
 
-export const sleep = (milliseconds: number) => {
+export const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
-
-declare global {
-  interface Navigator {
-      msSaveBlob?: (blob: any, defaultName?: string) => boolean
-  }
-}
 
 /* https://www.npmjs.com/package/js-file-download
  * 
@@ -96,7 +90,7 @@ declare global {
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE
  */
-export const downloadFile = (data: string, filename: string, mime?: string) => {
+export const downloadFile = (data, filename, mime) => {
   var blob = new Blob([data], {type: mime || 'application/octet-stream'});
   if (typeof window.navigator.msSaveBlob !== 'undefined') {
     // IE workaround for "HTML7007: One or more blob URLs were 

@@ -12,7 +12,7 @@ import { UserTransfers, TransferFile } from '../../types/transfers';
 
 const Transfers = ({ direction, server }) => {
   const [connecting, setConnecting] = useState(true);
-  const [transfers, setTransfers] = useState<UserTransfers[]>([]);
+  const [transfers, setTransfers] = useState([]);
 
   const [retrying, setRetrying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -48,20 +48,20 @@ const Transfers = ({ direction, server }) => {
     try {
       const response = await transfersLib.getAll({ direction });
       if (response) setTransfers(response);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       toast.error(error?.response?.data ?? error?.message ?? error);
     }
   };
 
-  const retry = async ({ file, suppressStateChange = false }: {file: TransferFile, suppressStateChange: boolean}) => {
+  const retry = async ({ file, suppressStateChange = false }) => {
     const { username, filename, size } = file;
         
     try {
       if (!suppressStateChange) setRetrying(true);
       await transfersLib.download({username, files: [{filename, size}] });
       if (!suppressStateChange) setRetrying(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       toast.error(error?.response?.data ?? error?.message ?? error);
       if (!suppressStateChange) setRetrying(false);
@@ -81,7 +81,7 @@ const Transfers = ({ direction, server }) => {
       if (!suppressStateChange) setCancelling(true);
       await transfersLib.cancel({ direction, username, id });
       if (!suppressStateChange) setCancelling(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       toast.error(error?.response?.data ?? error?.message ?? error);
       if (!suppressStateChange) setCancelling(false);
@@ -101,7 +101,7 @@ const Transfers = ({ direction, server }) => {
       if (!suppressStateChange) setRemoving(true);
       await transfersLib.cancel({ direction, username, id, remove: true });
       if (!suppressStateChange) setRemoving(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       toast.error(error?.response?.data ?? error?.message ?? error);
       if (!suppressStateChange) setRemoving(false);

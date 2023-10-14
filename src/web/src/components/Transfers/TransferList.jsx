@@ -16,7 +16,7 @@ import {
 } from 'semantic-ui-react';
 import { Direction as TransferDirection, TransferFile } from '../../types/transfers';
 
-const getColor = (state: string): {color?: SemanticCOLORS} => {
+const getColor = (state) => {
   switch(state) {
   case 'InProgress':
     return { color: 'blue' }; 
@@ -34,42 +34,21 @@ const getColor = (state: string): {color?: SemanticCOLORS} => {
   }
 };
 
-const isRetryableState = (state: string) => getColor(state).color === 'red';
-const isQueuedState = (state: string) => state.includes('Queued');
+const isRetryableState = (state) => getColor(state).color === 'red';
+const isQueuedState = (state) => state.includes('Queued');
 
-const formatBytesTransferred = ({ transferred, size }: {transferred: number, size: number }) => {
+const formatBytesTransferred = ({ transferred, size }) => {
   const [s, sExt] = formatBytes(size, 1).split(' ');
   const t = formatBytesAsUnit(transferred, 1, sExt);
 
   return `${t}/${s} ${sExt}`;
 };
 
-export interface FileWithSelection extends TransferFile {
-  selected: boolean;
-  placeInQueue?: string;
-}
-
-export interface TransferListProps { 
-  username: string,
-  direction: TransferDirection,
-  directoryName: string, 
-  files: FileWithSelection[],
-  onSelectionChange: (...args: OnSelectionChangeArgs[]) => void, 
-  onRetryRequested: (f: FileWithSelection) => void
-  onPlaceInQueueRequested: (f: FileWithSelection) => void
-}
-
-export interface OnSelectionChangeArgs {
-  directory: string;
-  file: FileWithSelection;
-  checked: boolean
-}
-
-const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange, onPlaceInQueueRequested}: TransferListProps) => {
+const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange, onPlaceInQueueRequested}) => {
 
   const [isFolded, setIsFolded] = useState<boolean>(false);
 
-  const handleClick = (file: FileWithSelection) => {
+  const handleClick = (file) => {
     const { state, direction } = file;
 
     if (direction === 'Download') {
