@@ -1,17 +1,19 @@
+import { Direction, FileDownloadRequest, UserTransfers } from '../types/transfers';
 import api from './api';
 
-export const getAll = async ({ direction }) => {
-  const response = (await api.get(`/transfers/${encodeURIComponent(direction)}s`)).data;
+
+export const getAll = async ({ direction }: { direction: Direction }): Promise<UserTransfers[] | undefined> => {
+  const response = (await api.get<UserTransfers[]>(`/transfers/${encodeURIComponent(direction)}s`)).data;
 
   if (!Array.isArray(response)) {
     console.warn('got non-array response from transfers API', response);
     return undefined;
   }
 
-  return response;
+  return response as UserTransfers[];
 };
 
-export const download = ({ username, files = [] }) => {
+export const download = ({ username, files = [] }: FileDownloadRequest) => {
   return api.post(`/transfers/downloads/${encodeURIComponent(username)}`, files);
 };
 
@@ -39,10 +41,10 @@ export const getPlaceInQueue = ({ username, id }) => {
   return api.get(`/transfers/downloads/${encodeURIComponent(username)}/${encodeURIComponent(id)}/position`);
 };
 
-export const isStateRetryable = (state) =>
+export const isStateRetryable = (state: string) =>
   state.includes('Completed') && state !== 'Completed, Succeeded';
 
-export const isStateCancellable = (state) =>
+export const isStateCancellable = (state: string) =>
   ['InProgress', 'Requested', 'Queued', 'Queued, Remotely', 'Queued, Locally', 'Initializing'].find(s => s === state);
 
-export const isStateRemovable = (state) => state.includes('Completed');
+export const isStateRemovable = (state: string) => state.includes('Completed');
