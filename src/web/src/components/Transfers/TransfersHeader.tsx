@@ -99,9 +99,9 @@ const TransfersHeader = ({
   onRemoveAll,
   removing = false,
 }: TransfersHeaderParams) => {
-  const [removeOption, setRemoveOption] = useState<RemoveOption>(RemoveOption.SUCCEEDED);
-  const [cancelOption, setCancelOption] = useState<CancelOption>(CancelOption.ALL);
-  const [retryOption, setRetryOption] = useState<RetryOption>(RetryOption.ERRORED);
+  const [removeOption, setRemoveOption] = useState(RemoveOption.SUCCEEDED);
+  const [cancelOption, setCancelOption] = useState(CancelOption.ALL);
+  const [retryOption, setRetryOption] = useState(RetryOption.ERRORED);
 
   const files = useMemo(() => {
     const files = transfers.reduce((acc: TransferFile[], username) => {
