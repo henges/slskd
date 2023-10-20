@@ -8,7 +8,7 @@ import {
 } from 'semantic-ui-react';
 
 import TransferList, { OnSelectionChangeArgs } from './TransferList';
-import { UserTransfers, TransferFile, TransferDirectory, Direction } from '../../types/transfers';
+import { UserTransfers, TransferFile, Direction } from '../../types/transfers';
 
 type TransferGroupProps = {
   user: UserTransfers;
@@ -92,7 +92,6 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
     
     return [...selections]
       .map(s => {
-        console.log(s);
         return JSON.parse(s) as FileInDirectory;
       })
       .map(s => user
@@ -101,12 +100,12 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
         .find(f => f.filename === s.filename)
       )
       .filter(s => s !== undefined) as TransferFile[];
-  }, [selections])
+  }, [selections, user.directories])
   const all = selected.length > 1 ? ' Selected' : '';
       
-  const allRetryable = selected.filter(f => transfers.isStateRetryable(f?.state)).length === selected.length;
-  const anyCancellable = selected.filter(f => transfers.isStateCancellable(f?.state)).length > 0;
-  const allRemovable = selected.filter(f => transfers.isStateRemovable(f?.state)).length === selected.length;
+  const allRetryable = selected.filter(f => transfers.isStateRetryable(f.state)).length === selected.length;
+  const anyCancellable = selected.filter(f => transfers.isStateCancellable(f.state)).length > 0;
+  const allRemovable = selected.filter(f => transfers.isStateRemovable(f.state)).length === selected.length;
 
   return (
     <Card key={user.username} className='transfer-card' raised>
