@@ -13,8 +13,6 @@ import { UserTransfers, TransferFile, Direction } from '../../types/transfers';
 type TransferGroupProps = {
   user: UserTransfers;
   direction: Direction;
-  retry: ({ file, suppressStateChange }: { file: TransferFile, suppressStateChange: boolean }) => Promise<void>
-  // more...
 }
 
 type FileInDirectory = { directory: string, filename: string };

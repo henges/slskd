@@ -145,12 +145,6 @@ const Transfers = ({ direction, server }: TransfersProps) => {
             key={index} 
             direction={direction} 
             user={user}
-            retry={retry}
-            // retryAll={retryAll}
-            // cancel={cancel}
-            // cancelAll={cancelAll}
-            // remove={remove}
-            // removeAll={removeAll}
           />
         )}
     </>
