@@ -1,11 +1,29 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import {
   Button,
+  ButtonProps,
   Dropdown,
+  DropdownItemProps,
+  DropdownProps,
+  SemanticCOLORS,
+  SemanticICONS,
 } from 'semantic-ui-react';
 
 import ShrinkableButton from './ShrinkableButton';
+
+export interface ShrinkableDropdownButtonProps {
+  color?: SemanticCOLORS, 
+  icon: SemanticICONS,
+  mediaQuery?: string, 
+  disabled: boolean,
+  loading: boolean, 
+  options: DropdownItemProps[], 
+  onClick: (event: React.MouseEvent<HTMLButtonElement>, data: ButtonProps) => void, 
+  onChange: (event: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => void, 
+  hidden?: boolean, 
+  children?: ReactNode,
+}
 
 const ShrinkableDropdownButton = ({ 
   color, 
@@ -18,7 +36,7 @@ const ShrinkableDropdownButton = ({
   onChange, 
   hidden, 
   children,
-}) => {
+}: ShrinkableDropdownButtonProps) => {
   if (hidden) {
     return <></>;
   }

@@ -55,12 +55,12 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
   };
 
   const cancelAll = async (direction: Direction, username: string, selected: TransferFile[]) => {
-    await Promise.all(selected.map(file => transfers.cancel({ direction, username, id: file.id})));
+    await Promise.all(selected.map(file => transfers.cancel(direction, username, file.id)));
   };
 
   const removeAll = async (direction: Direction, username: string, selected: TransferFile[]) => {
     await Promise.all(selected.map(file => 
-      transfers.cancel({ direction, username, id: file.id, remove: true })
+      transfers.cancel(direction, username, file.id, true)
         .then(() => removeFileSelection(file))));
   };
 
@@ -78,7 +78,7 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
     const { username, id } = file;
 
     try {
-      await transfers.getPlaceInQueue({ username, id });
+      await transfers.getPlaceInQueue(username, id);
     } catch (error) {
       console.error(error);
     }
@@ -94,8 +94,7 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
       .map(s => {
         return JSON.parse(s) as FileInDirectory;
       })
-      .map(s => user
-        .directories
+      .map(s => user.directories
         .find(d => d.directory === s.directory)?.files
         .find(f => f.filename === s.filename)
       )

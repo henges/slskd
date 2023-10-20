@@ -10,7 +10,7 @@ const Data = () => {
 
   const clear = async ({ direction, setState }) => {
     setState(true);
-    await clearCompleted({ direction });
+    await clearCompleted(direction);
     setState(false);
     toast.success(`Completed ${direction}s cleared!`);
   };

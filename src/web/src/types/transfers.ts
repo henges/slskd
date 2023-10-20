@@ -23,7 +23,7 @@ export interface TransferFile {
     filename:         string;
     size:             number;
     startOffset:      number;
-    state:            string;
+    state:            TransferState;
     requestedAt:      Date;
     endedAt:          Date;
     bytesTransferred: number;
@@ -31,4 +31,17 @@ export interface TransferFile {
     exception:        string;
     bytesRemaining:   number;
     percentComplete:  number;
+}
+
+export enum TransferState {
+    REQUESTED = 'Requested',
+    QUEUED_REMOTELY = 'Queued, Remotely',
+    QUEUED_LOCALLY = 'Queued, Locally',
+    INITIALIZING = 'Initializing',
+    INPROGRESS = 'InProgress',
+    COMPLETED_SUCCEEDED = 'Completed, Succeeded',
+    COMPLETED_CANCELLED = 'Completed, Cancelled',
+    COMPLETED_TIMEDOUT = 'Completed, TimedOut',
+    COMPLETED_ERRORED = 'Completed, Errored',
+    COMPLETED_REJECTED = 'Completed, Rejected',
 }

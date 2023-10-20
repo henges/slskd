@@ -8,9 +8,16 @@ import TransfersHeader from './TransfersHeader';
 import {LoaderSegment, PlaceholderSegment} from '../Shared';
 
 import './Transfers.css';
-import { UserTransfers, TransferFile } from '../../types/transfers';
+import { UserTransfers, TransferFile, Direction } from '../../types/transfers';
 
-const Transfers = ({ direction, server }) => {
+export interface TransfersProps {
+  direction: Direction,
+  server: {
+    isConnected: boolean
+  }
+}
+
+const Transfers = ({ direction, server }: TransfersProps) => {
   const [connecting, setConnecting] = useState(true);
   const [transfers, setTransfers] = useState<UserTransfers[]>([]);
 
@@ -68,18 +75,18 @@ const Transfers = ({ direction, server }) => {
     }
   };
 
-  const retryAll = async (transfers) => {
+  const retryAll = async (transfers: TransferFile[]) => {
     setRetrying(true);
     await Promise.all(transfers.map(file => retry({ file, suppressStateChange: true })));
     setRetrying(false);
   };
 
-  const cancel = async ({ file, suppressStateChange = false }) => {
+  const cancel = async (file: TransferFile, suppressStateChange = false) => {
     const { username, id } = file;
     
     try {
       if (!suppressStateChange) setCancelling(true);
-      await transfersLib.cancel({ direction, username, id });
+      await transfersLib.cancel(direction, username, id);
       if (!suppressStateChange) setCancelling(false);
     } catch (error: any) {
       console.error(error);
@@ -88,18 +95,18 @@ const Transfers = ({ direction, server }) => {
     }
   };
 
-  const cancelAll = async (transfers) => {
+  const cancelAll = async (transfers: TransferFile[]) => {
     setCancelling(true);
-    await Promise.all(transfers.map(file => cancel({ file, suppressStateChange: true })));
+    await Promise.all(transfers.map(file => cancel(file, true)));
     setCancelling(false);
   };
 
-  const remove = async ({ file, suppressStateChange = false }) => {
+  const remove = async (file: TransferFile, suppressStateChange = false) => {
     const { username, id } = file;
 
     try {
       if (!suppressStateChange) setRemoving(true);
-      await transfersLib.cancel({ direction, username, id, remove: true });
+      await transfersLib.cancel(direction, username, id, true);
       if (!suppressStateChange) setRemoving(false);
     } catch (error: any) {
       console.error(error);
@@ -108,9 +115,9 @@ const Transfers = ({ direction, server }) => {
     }
   };
 
-  const removeAll = async (transfers) => {
+  const removeAll = async (transfers: TransferFile[]) => {
     setRemoving(true);
-    await Promise.all(transfers.map(file => remove({ file, suppressStateChange: true })));
+    await Promise.all(transfers.map(file => remove(file, true)));
     setRemoving(false);
   };
 

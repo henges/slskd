@@ -17,12 +17,12 @@ export const download = ({ username, files = [] }: FileDownloadRequest) => {
   return api.post(`/transfers/downloads/${encodeURIComponent(username)}`, files);
 };
 
-export const cancel = ({ direction, username, id, remove = false }) => {
+export const cancel = (direction: Direction, username: string, id: string, remove = false) => {
   return api.delete(
     `/transfers/${direction}s/${encodeURIComponent(username)}/${encodeURIComponent(id)}?remove=${remove}`);
 };
 
-export const clearCompleted = ({ direction }) => {
+export const clearCompleted = (direction: Direction) => {
   return api.delete(`/transfers/${direction}s/all/completed`);
 };
 
@@ -37,7 +37,7 @@ export const clearCompleted = ({ direction }) => {
 // 'Completed, Errored'
 // 'Completed, Rejected'
 
-export const getPlaceInQueue = ({ username, id }) => {
+export const getPlaceInQueue = (username: string, id: string) => {
   return api.get(`/transfers/downloads/${encodeURIComponent(username)}/${encodeURIComponent(id)}/position`);
 };
 
