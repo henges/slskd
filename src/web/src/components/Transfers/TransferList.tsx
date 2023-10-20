@@ -15,6 +15,7 @@ import {
   Button,
 } from 'semantic-ui-react';
 import { Direction as TransferDirection, TransferFile } from '../../types/transfers';
+import Div from '../Shared/Div';
 
 const getColor = (state: string): {color?: SemanticCOLORS} => {
   switch(state) {
@@ -88,7 +89,7 @@ const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange
   };
 
   return (
-    <div>
+    <Div>
       <Header 
         size='small' 
         className='filelist-header'
@@ -158,7 +159,7 @@ const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange
           </List.Item>
         </List>
         : ''}
-    </div>
+    </Div>
   );
 };
 

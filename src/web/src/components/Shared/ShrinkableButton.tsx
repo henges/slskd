@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import { useMediaQuery } from 'react-responsive';
-import { Button, Icon, Popup } from 'semantic-ui-react';
+import { Button, ButtonProps, Icon, Popup, SemanticICONS } from 'semantic-ui-react';
 
-const ShrinkableButton = ({ icon, loading, mediaQuery, children, ...rest }) => {
+export interface ShrinkableButtonProps extends Record<string, unknown> {
+  icon: SemanticICONS, 
+  loading: boolean, 
+  mediaQuery?: string, 
+  children: ReactNode, 
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>, data: ButtonProps) => void
+}
+
+const ShrinkableButton = ({ icon, loading, mediaQuery, children, ...rest }: ShrinkableButtonProps) => {
   const shouldShrink = useMediaQuery({ query: mediaQuery });
 
   if (!shouldShrink) {
