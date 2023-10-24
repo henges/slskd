@@ -3,10 +3,10 @@ import React, { ReactNode } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { Button, ButtonProps, Icon, Popup, SemanticICONS } from 'semantic-ui-react';
 
-export interface ShrinkableButtonProps extends Record<string, unknown> {
+export interface ShrinkableButtonProps extends ButtonProps {
   icon: SemanticICONS, 
   loading: boolean, 
-  mediaQuery?: string, 
+  mediaQuery: string, 
   children: ReactNode, 
   onClick?: (event: React.MouseEvent<HTMLButtonElement>, data: ButtonProps) => void
 }

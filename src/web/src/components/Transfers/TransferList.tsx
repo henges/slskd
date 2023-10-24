@@ -47,7 +47,7 @@ const formatBytesTransferred = ({ transferred, size }: {transferred: number, siz
 
 export interface FileWithSelection extends TransferFile {
   selected: boolean;
-  placeInQueue?: string;
+  placeInQueue?: number;
 }
 
 export interface TransferListProps { 
@@ -146,7 +146,7 @@ const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange
                         >
                           {f.direction === 'Download' && isQueuedState(f.state) && <Icon name='refresh'/>}
                           {f.direction === 'Download' && isRetryableState(f.state) && <Icon name='redo'/>}
-                          {f.state}{f.placeInQueue ? ` (#${f.placeInQueue})` : ''}
+                          {f.state}{f.placeInQueue != null ? ` (#${f.placeInQueue})` : ''}
                         </Button>}
                     </Table.Cell>
                     <Table.Cell className='transferlist-size'>

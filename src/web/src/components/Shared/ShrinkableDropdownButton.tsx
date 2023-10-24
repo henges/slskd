@@ -15,7 +15,7 @@ import ShrinkableButton from './ShrinkableButton';
 export interface ShrinkableDropdownButtonProps {
   color?: SemanticCOLORS, 
   icon: SemanticICONS,
-  mediaQuery?: string, 
+  mediaQuery: string, 
   disabled: boolean,
   loading: boolean, 
   options: DropdownItemProps[], 

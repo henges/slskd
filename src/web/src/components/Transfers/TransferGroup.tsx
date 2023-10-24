@@ -9,6 +9,7 @@ import {
 
 import TransferList, { OnSelectionChangeArgs } from './TransferList';
 import { UserTransfers, TransferFile, Direction } from '../../types/transfers';
+import { toast } from 'react-toastify';
 
 type TransferGroupProps = {
   user: UserTransfers;
@@ -67,8 +68,9 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
         
     try {
       await transfers.download({username, files: [{filename, size}] });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error?.response?.data ?? error?.message ?? error);
     }
   };
 
@@ -77,8 +79,9 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
 
     try {
       await transfers.getPlaceInQueue(username, id);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error?.response?.data ?? error?.message ?? error);
     }
   };
 

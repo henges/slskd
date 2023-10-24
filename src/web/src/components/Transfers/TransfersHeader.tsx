@@ -12,7 +12,7 @@ import {
 
 import ShrinkableDropdownButton from '../Shared/ShrinkableDropdownButton';
 import { isStateCancellable, isStateRetryable } from '../../lib/transfers';
-import { Direction, TransferFile, UserTransfers } from '../../types/transfers';
+import { Direction, TransferFile, TransferState, UserTransfers } from '../../types/transfers';
 
 const getRetryableFiles = (files: TransferFile[], retryOption: RetryOption) => {
   switch (retryOption) {
@@ -33,23 +33,23 @@ const getCancellableFiles = (files: TransferFile[], cancelOption: CancelOption) 
   case CancelOption.ALL:
     return files.filter(file => isStateCancellable(file.state));
   case CancelOption.QUEUED:
-    return files.filter(file => ['Queued, Locally', 'Queued, Remotely'].includes(file.state));
+    return files.filter(file => [TransferState.QUEUED_LOCALLY, TransferState.QUEUED_REMOTELY].includes(file.state));
   case CancelOption.IN_PROGRESS:
-    return files.filter(file => file.state === 'InProgress');
+    return files.filter(file => file.state === TransferState.INPROGRESS);
   }
 };
 
 const getRemovableFiles = (files: TransferFile[], removeOption: RemoveOption) => {
   switch (removeOption) {
   case RemoveOption.SUCCEEDED:
-    return files.filter(file => file.state === 'Completed, Succeeded');
+    return files.filter(file => file.state === TransferState.COMPLETED_SUCCEEDED);
   case RemoveOption.ERRORED:
     return files.filter(file => 
-      ['Completed, TimedOut', 
-        'Completed, Errored', 
-        'Completed, Rejected'].includes(file.state));
+      [TransferState.COMPLETED_TIMEDOUT, 
+        TransferState.COMPLETED_ERRORED, 
+        TransferState.COMPLETED_REJECTED].includes(file.state));
   case RemoveOption.CANCELLED:
-    return files.filter(file => file.state === 'Completed, Cancelled');
+    return files.filter(file => file.state === TransferState.COMPLETED_CANCELLED);
   case RemoveOption.COMPLETED:
     return files.filter(file => file.state.includes('Completed'));
   }

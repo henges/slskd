@@ -1,5 +1,7 @@
 export type Direction = "download" | "upload"
 
+export type ApiDirection = "Download" | "Upload"
+
 export interface UserTransfers {
     username:    string;
     directories: TransferDirectory[];
@@ -19,7 +21,7 @@ export interface FileDownloadRequest {
 export interface TransferFile {
     id:               string;
     username:         string;
-    direction:        string;
+    direction:        ApiDirection;
     filename:         string;
     size:             number;
     startOffset:      number;
