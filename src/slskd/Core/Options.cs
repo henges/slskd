@@ -850,6 +850,7 @@ namespace slskd
             /// <summary>
             ///     Gets options for the blacklisted user group.
             /// </summary>
+            [Validate]
             public BlacklistedOptions Blacklisted { get; init; } = new BlacklistedOptions();
 
             /// <summary>
@@ -886,12 +887,41 @@ namespace slskd
             /// <summary>
             ///     Built in blacklisted group options.
             /// </summary>
-            public class BlacklistedOptions
+            public class BlacklistedOptions : IValidatableObject
             {
                 /// <summary>
                 ///     Gets the list of group member usernames.
                 /// </summary>
                 public string[] Members { get; init; } = Array.Empty<string>();
+
+                /// <summary>
+                ///     Gets the list of group CIDRs.
+                /// </summary>
+                public string[] Cidrs { get; init; } = Array.Empty<string>();
+
+                /// <summary>
+                ///     Extended validation.
+                /// </summary>
+                /// <param name="validationContext"></param>
+                /// <returns></returns>
+                public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+                {
+                    var results = new List<ValidationResult>();
+
+                    foreach (var cidr in Cidrs)
+                    {
+                        try
+                        {
+                            _ = IPAddressRange.Parse(cidr);
+                        }
+                        catch (Exception ex)
+                        {
+                            results.Add(new ValidationResult($"CIDR {cidr} is invalid: {ex.Message}"));
+                        }
+                    }
+
+                    return results;
+                }
             }
 
             /// <summary>
@@ -1060,16 +1090,22 @@ namespace slskd
         public class RetentionOptions
         {
             /// <summary>
-            ///     Gets upload retention options.
+            ///     Gets transfer retention options.
             /// </summary>
             [Validate]
-            public TransferRetentionOptions Upload { get; init; } = new TransferRetentionOptions();
+            public TransferRetentionOptions Transfers { get; init; } = new TransferRetentionOptions();
 
             /// <summary>
-            ///     Gets download retention options.
+            ///     Gets file retention options.
             /// </summary>
             [Validate]
-            public TransferRetentionOptions Download { get; init; } = new TransferRetentionOptions();
+            public FileRetentionOptions Files { get; init; } = new FileRetentionOptions();
+
+            /// <summary>
+            ///     Gets the time to retain logs, in days.
+            /// </summary>
+            [Range(1, maximum: int.MaxValue)]
+            public int Logs { get; init; } = 180;
 
             /// <summary>
             ///     Transfer retention options.
@@ -1077,22 +1113,58 @@ namespace slskd
             public class TransferRetentionOptions
             {
                 /// <summary>
-                ///     Gets the time to retain successful transfers, in minutes.
+                ///     Gets upload retention options.
                 /// </summary>
-                [Range(5, maximum: int.MaxValue)]
-                public int? Succeeded { get; init; } = null;
+                [Validate]
+                public TransferTypeRetentionOptions Upload { get; init; } = new TransferTypeRetentionOptions();
 
                 /// <summary>
-                ///     Gets the time to retain errored transfers, in minutes.
+                ///     Gets download retention options.
                 /// </summary>
-                [Range(5, maximum: int.MaxValue)]
-                public int? Errored { get; init; } = null;
+                [Validate]
+                public TransferTypeRetentionOptions Download { get; init; } = new TransferTypeRetentionOptions();
 
                 /// <summary>
-                ///     Gets the time to retain cancelled transfers, in minutes.
+                ///     Transfer retention options.
                 /// </summary>
-                [Range(5, maximum: int.MaxValue)]
-                public int? Cancelled { get; init; } = null;
+                public class TransferTypeRetentionOptions
+                {
+                    /// <summary>
+                    ///     Gets the time to retain successful transfers, in minutes.
+                    /// </summary>
+                    [Range(5, maximum: int.MaxValue)]
+                    public int? Succeeded { get; init; } = null;
+
+                    /// <summary>
+                    ///     Gets the time to retain errored transfers, in minutes.
+                    /// </summary>
+                    [Range(5, maximum: int.MaxValue)]
+                    public int? Errored { get; init; } = null;
+
+                    /// <summary>
+                    ///     Gets the time to retain cancelled transfers, in minutes.
+                    /// </summary>
+                    [Range(5, maximum: int.MaxValue)]
+                    public int? Cancelled { get; init; } = null;
+                }
+            }
+
+            /// <summary>
+            ///     File retention options.
+            /// </summary>
+            public class FileRetentionOptions
+            {
+                /// <summary>
+                ///     Gets the time to retain completed files, in minutes.
+                /// </summary>
+                [Range(30, maximum: int.MaxValue)]
+                public int? Complete { get; init; } = null;
+
+                /// <summary>
+                ///     Gets the time to retain incomplete files, in minutes.
+                /// </summary>
+                [Range(30, maximum: int.MaxValue)]
+                public int? Incomplete { get; init; } = null;
             }
         }
 

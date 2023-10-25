@@ -36,6 +36,7 @@ namespace slskd
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Hosting;
+    using NetTools;
     using Serilog;
     using Serilog.Events;
     using slskd.Configuration;
@@ -285,6 +286,10 @@ namespace slskd
         {
             Log.Information("Application started");
 
+            Log.Debug("Starting clock");
+            await Clock.StartAsync();
+            Log.Debug("Clock started");
+
             // if the application shut down "uncleanly", transfers may need to be cleaned up. we deliberately don't allow these
             // records to be updated if the application has started to shut down so that we can do this cleanup and properly
             // disposition them as having failed due to an application shutdown, instead of some random exception thrown while
@@ -442,6 +447,9 @@ namespace slskd
         {
             ShuttingDown = true;
             Log.Warning("Application is shutting down");
+
+            Clock.Stop();
+
             Client.Disconnect("Shutting down", new ApplicationShutdownException("Shutting down"));
             Client.Dispose();
             Log.Information("Client stopped");
@@ -450,8 +458,9 @@ namespace slskd
 
         private Task EnqueueDownload(string username, IPEndPoint endpoint, string filename)
         {
-            if (Options.Groups.Blacklisted.Members.Contains(username))
+            if (IsBlacklisted(username, endpoint.Address))
             {
+                Log.Information("Rejected enqueue request for blacklisted user {Username} ({IP})", username, endpoint.Address);
                 return Task.FromException(new DownloadEnqueueException($"File not shared."));
             }
 
@@ -468,8 +477,9 @@ namespace slskd
         {
             Metrics.Browse.RequestsReceived.Inc(1);
 
-            if (Options.Groups.Blacklisted.Members.Contains(username))
+            if (IsBlacklisted(username, endpoint.Address))
             {
+                Log.Information("Returned empty browse listing for blacklisted user {Username} ({IP})", username, endpoint.Address);
                 return new BrowseResponse();
             }
 
@@ -727,15 +737,69 @@ namespace slskd
 
         private void Clock_EveryFiveMinutes(object sender, EventArgs e)
         {
-            PruneTransfers();
+            _ = Task.Run(() => PruneTransfers());
         }
 
         private void Clock_EveryThirtyMinutes(object sender, EventArgs e)
         {
+            _ = Task.Run(() => PruneFiles());
         }
 
         private void Clock_EveryHour(object sender, EventArgs e)
         {
+        }
+
+        private void PruneFiles()
+        {
+            void PruneDirectory(int? age, string directory)
+            {
+                try
+                {
+                    if (!age.HasValue)
+                    {
+                        return;
+                    }
+
+                    Log.Debug("Pruning files older than {Age} minutes from {Directory}", age, directory);
+
+                    var options = new EnumerationOptions
+                    {
+                        IgnoreInaccessible = true,
+                        AttributesToSkip = FileAttributes.Hidden | FileAttributes.System,
+                        RecurseSubdirectories = true,
+                    };
+
+                    var files = System.IO.Directory.GetFiles(directory, "*", options)
+                        .Select(filename => new FileInfo(filename))
+                        .Where(file => file.LastAccessTimeUtc <= DateTime.UtcNow.AddMinutes(-age.Value));
+
+                    Log.Debug("Found {Count} files of need of pruning", files.Count());
+
+                    int errors = 0;
+
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            file.Delete();
+                        }
+                        catch (Exception ex)
+                        {
+                            errors++;
+                            Log.Warning(ex, "Failed to prune file {File}: {Message}", file, ex.Message);
+                        }
+                    }
+
+                    Log.Debug("Pruning complete. Deleted: {Deleted}, Errors: {Errors}", files.Count() - errors, errors);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Failed to prune files in directory {Directory}: {Message}", directory, ex.Message);
+                }
+            }
+
+            PruneDirectory(age: Options.Retention.Files.Incomplete, directory: Options.Directories.Incomplete);
+            PruneDirectory(age: Options.Retention.Files.Complete, directory: Options.Directories.Downloads);
         }
 
         private void PruneTransfers()
@@ -760,13 +824,13 @@ namespace slskd
 
             try
             {
-                PruneUpload(options.Upload.Succeeded, TransferStates.Succeeded);
-                PruneUpload(options.Upload.Cancelled, TransferStates.Cancelled);
-                PruneUpload(options.Upload.Errored, TransferStates.Errored);
+                PruneUpload(options.Transfers.Upload.Succeeded, TransferStates.Succeeded);
+                PruneUpload(options.Transfers.Upload.Cancelled, TransferStates.Cancelled);
+                PruneUpload(options.Transfers.Upload.Errored, TransferStates.Errored);
 
-                PruneDownload(options.Download.Succeeded, TransferStates.Succeeded);
-                PruneDownload(options.Download.Cancelled, TransferStates.Cancelled);
-                PruneDownload(options.Download.Errored, TransferStates.Errored);
+                PruneDownload(options.Transfers.Download.Succeeded, TransferStates.Succeeded);
+                PruneDownload(options.Transfers.Download.Cancelled, TransferStates.Cancelled);
+                PruneDownload(options.Transfers.Download.Errored, TransferStates.Errored);
             }
             catch
             {
@@ -838,8 +902,9 @@ namespace slskd
         /// <returns>A Task resolving an instance of Soulseek.Directory containing the contents of the requested directory.</returns>
         private async Task<Soulseek.Directory> DirectoryContentsResponseResolver(string username, IPEndPoint endpoint, int token, string directory)
         {
-            if (Options.Groups.Blacklisted.Members.Contains(username))
+            if (IsBlacklisted(username, endpoint.Address))
             {
+                Log.Information("Returned empty directory listing for blacklisted user {Username} ({IP})", username, endpoint.Address);
                 return new Soulseek.Directory(directory);
             }
 
@@ -1033,8 +1098,9 @@ namespace slskd
         {
             Metrics.Search.RequestsReceived.Inc(1);
 
-            if (Options.Groups.Blacklisted.Members.Contains(username))
+            if (IsBlacklisted(username))
             {
+                Log.Information("Returned empty search response for blacklisted user {Username}", username);
                 return new SearchResponse(username, token, hasFreeUploadSlot: false, uploadSpeed: 0, queueLength: int.MaxValue, fileList: Enumerable.Empty<Soulseek.File>());
             }
 
@@ -1254,6 +1320,21 @@ namespace slskd
                 Log.Warning(ex, "Failed to resolve user info: {Message}", ex.Message);
                 throw;
             }
+        }
+
+        private bool IsBlacklisted(string username, IPAddress ipAddress = null)
+        {
+            if (Options.Groups.Blacklisted.Members.Contains(username))
+            {
+                return true;
+            }
+
+            if (ipAddress is not null && Options.Groups.Blacklisted.Cidrs.Select(c => IPAddressRange.Parse(c)).Any(range => range.Contains(ipAddress)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
