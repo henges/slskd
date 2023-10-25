@@ -12,67 +12,54 @@ import {
 
 import ShrinkableDropdownButton from '../Shared/ShrinkableDropdownButton';
 import { isStateCancellable, isStateRetryable } from '../../lib/transfers';
-import { Direction, TransferFile, TransferState, UserTransfers } from '../../types/transfers';
+import { Direction, TransferFile, UserTransfers } from '../../types/transfers';
+
+type RetryOption = "Errored" | "Cancelled" | "All"
+
+type RemoveOption = "Succeeded" | "Errored" | "Cancelled" | "Completed"
+
+type CancelOption = "All" | "Queued" | "In Progress"
 
 const getRetryableFiles = (files: TransferFile[], retryOption: RetryOption) => {
   switch (retryOption) {
-  case RetryOption.ERRORED:
+  case "Errored":
     return files.filter(file => 
       ['Completed, TimedOut', 
         'Completed, Errored', 
         'Completed, Rejected'].includes(file.state));
-  case RetryOption.CANCELLED:
+  case "Cancelled":
     return files.filter(file => file.state === 'Completed, Cancelled');
-  case RetryOption.ALL:
+  case "All":
     return files.filter(file => isStateRetryable(file.state));
   }
 };
 
 const getCancellableFiles = (files: TransferFile[], cancelOption: CancelOption) => {
   switch (cancelOption) {
-  case CancelOption.ALL:
+  case "All":
     return files.filter(file => isStateCancellable(file.state));
-  case CancelOption.QUEUED:
-    return files.filter(file => [TransferState.QUEUED_LOCALLY, TransferState.QUEUED_REMOTELY].includes(file.state));
-  case CancelOption.IN_PROGRESS:
-    return files.filter(file => file.state === TransferState.INPROGRESS);
+  case "Queued":
+    return files.filter(file => ["Queued, Locally", "Queued, Remotely"].includes(file.state));
+  case "In Progress":
+    return files.filter(file => file.state === "InProgress");
   }
 };
 
 const getRemovableFiles = (files: TransferFile[], removeOption: RemoveOption) => {
   switch (removeOption) {
-  case RemoveOption.SUCCEEDED:
-    return files.filter(file => file.state === TransferState.COMPLETED_SUCCEEDED);
-  case RemoveOption.ERRORED:
+  case "Succeeded":
+    return files.filter(file => file.state === "Completed, Succeeded");
+  case "Errored":
     return files.filter(file => 
-      [TransferState.COMPLETED_TIMEDOUT, 
-        TransferState.COMPLETED_ERRORED, 
-        TransferState.COMPLETED_REJECTED].includes(file.state));
-  case RemoveOption.CANCELLED:
-    return files.filter(file => file.state === TransferState.COMPLETED_CANCELLED);
-  case RemoveOption.COMPLETED:
+      ["Completed, TimedOut", 
+        "Completed, Errored", 
+        "Completed, Rejected"].includes(file.state));
+  case "Cancelled":
+    return files.filter(file => file.state === "Completed, Cancelled");
+  case "Completed":
     return files.filter(file => file.state.includes('Completed'));
   }
 };
-
-enum RetryOption {
-  ERRORED = "Errored",
-  CANCELLED = "Cancelled",
-  ALL = 'All',
-}
-
-enum RemoveOption {
-  SUCCEEDED = "Succeeded",
-  ERRORED = "Errored",
-  CANCELLED = "Cancelled",
-  COMPLETED = "Completed"
-}
-
-enum CancelOption {
-  ALL = 'All',
-  QUEUED = 'Queued',
-  IN_PROGRESS = 'In Progress'
-}
 
 export interface TransfersHeaderParams {
   direction: Direction, 
@@ -99,9 +86,9 @@ const TransfersHeader = ({
   onRemoveAll,
   removing = false,
 }: TransfersHeaderParams) => {
-  const [removeOption, setRemoveOption] = useState(RemoveOption.SUCCEEDED);
-  const [cancelOption, setCancelOption] = useState(CancelOption.ALL);
-  const [retryOption, setRetryOption] = useState(RetryOption.ERRORED);
+  const [removeOption, setRemoveOption] = useState<RemoveOption>("Succeeded");
+  const [cancelOption, setCancelOption] = useState<CancelOption>("All");
+  const [retryOption, setRetryOption] = useState<RetryOption>("Errored");
 
   const files = useMemo(() => {
     const files = transfers.reduce((acc: TransferFile[], username) => {
@@ -133,9 +120,9 @@ const TransfersHeader = ({
           disabled={working || empty || !server.isConnected}
           loading={retrying}
           options={[
-            { key: 'errored', text: RetryOption.ERRORED, value: RetryOption.ERRORED },
-            { key: 'cancelled', text: RetryOption.CANCELLED, value: RetryOption.CANCELLED },
-            { key: 'all', text: RetryOption.ALL, value: RetryOption.ALL },
+            { key: 'errored', text: "Errored", value: "Errored" },
+            { key: 'cancelled', text: "Cancelled", value: "Cancelled" },
+            { key: 'all', text: "All", value: "All" },
           ]}
           onChange={(_, data) => setRetryOption(data.value as RetryOption)}
         >
@@ -150,9 +137,9 @@ const TransfersHeader = ({
           disabled={working || empty}
           loading={cancelling}
           options={[
-            { key: 'all', text: CancelOption.ALL, value: CancelOption.ALL },
-            { key: 'queued', text: CancelOption.QUEUED, value: CancelOption.QUEUED },
-            { key: 'inProgress', text: CancelOption.IN_PROGRESS, value: CancelOption.IN_PROGRESS },
+            { key: 'all', text: "All", value: "All" },
+            { key: 'queued', text: "Queued", value: "Queued" },
+            { key: 'inProgress', text: "In Progress", value: "In Progress" },
           ]}
           onChange={(_, data) => setCancelOption(data.value as CancelOption)}
         >
@@ -166,10 +153,10 @@ const TransfersHeader = ({
           disabled={working || empty}
           loading={removing}
           options={[
-            { key: 'succeeded', text: RemoveOption.SUCCEEDED, value: RemoveOption.SUCCEEDED },
-            { key: 'errored', text: RemoveOption.ERRORED, value: RemoveOption.ERRORED },
-            { key: 'cancelled', text: RemoveOption.CANCELLED, value: RemoveOption.CANCELLED },
-            { key: 'completed', text: RemoveOption.COMPLETED, value: RemoveOption.COMPLETED },
+            { key: 'succeeded', text: "Succeeded", value: "Succeeded" },
+            { key: 'errored', text: "Errored", value: "Errored" },
+            { key: 'cancelled', text: "Cancelled", value: "Cancelled" },
+            { key: 'completed', text: "Completed", value: "Completed" },
           ]}
           onChange={(_, data) => setRemoveOption(data.value as RemoveOption)}
         >

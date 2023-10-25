@@ -35,15 +35,5 @@ export interface TransferFile {
     percentComplete:  number;
 }
 
-export enum TransferState {
-    REQUESTED = 'Requested',
-    QUEUED_REMOTELY = 'Queued, Remotely',
-    QUEUED_LOCALLY = 'Queued, Locally',
-    INITIALIZING = 'Initializing',
-    INPROGRESS = 'InProgress',
-    COMPLETED_SUCCEEDED = 'Completed, Succeeded',
-    COMPLETED_CANCELLED = 'Completed, Cancelled',
-    COMPLETED_TIMEDOUT = 'Completed, TimedOut',
-    COMPLETED_ERRORED = 'Completed, Errored',
-    COMPLETED_REJECTED = 'Completed, Rejected',
-}
+export type TransferState = "Requested" | "Queued, Remotely" | "Queued, Locally" | "Initializing" | "InProgress" 
+    | "Completed, Succeeded" | "Completed, Cancelled" | "Completed, TimedOut" | "Completed, Errored" | "Completed, Rejected"
