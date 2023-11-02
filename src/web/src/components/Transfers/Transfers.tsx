@@ -10,6 +10,8 @@ import {LoaderSegment, PlaceholderSegment} from '../Shared';
 import './Transfers.css';
 import { UserTransfers, TransferFile, Direction } from '../../types/transfers';
 
+export type FileFilterOption = "SUCCEEDED" | "INCOMPLETE" | "IN_PROGRESS" | "ERRORED" | "ALL"
+
 export interface TransfersProps {
   direction: Direction,
   server: {
@@ -20,6 +22,7 @@ export interface TransfersProps {
 const Transfers = ({ direction, server }: TransfersProps) => {
   const [connecting, setConnecting] = useState(true);
   const [transfers, setTransfers] = useState<UserTransfers[]>([]);
+  const [fileFilterOption, setFileFilterOption] = useState<FileFilterOption>("ALL");
 
   const [retrying, setRetrying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -121,6 +124,36 @@ const Transfers = ({ direction, server }: TransfersProps) => {
     setRemoving(false);
   };
 
+  const filteredTransfers = useMemo(() => {
+
+    var filterFunc: (f: TransferFile) => boolean;
+
+    if (fileFilterOption == "ALL") {
+      return transfers;
+    }
+
+    switch(fileFilterOption) {
+      case 'SUCCEEDED': filterFunc = (f) => f.state == "Completed, Succeeded"; break;
+      case 'IN_PROGRESS': filterFunc = (f) => f.state == "InProgress" || f.state == "Initializing"; break;
+      case 'ERRORED': filterFunc = (f) => f.state == "Completed, Errored" 
+                                          || f.state == "Completed, Rejected"
+                                          || f.state == "Completed, TimedOut"; break;
+      case 'INCOMPLETE': filterFunc = (f) => f.state !== "Completed, Succeeded"; break;
+    }
+
+    return transfers
+        .map(t => { 
+          const newDirectories = t.directories
+            .map(d => {
+              const newFiles = d.files.filter(filterFunc);
+              return {...d, files: newFiles, fileCount: newFiles.length}
+            })
+            .filter(d => d.fileCount > 0);
+          return {...t, directories: newDirectories}
+        })
+        .filter(t => t.directories.length > 0);
+  }, [transfers, fileFilterOption])
+
   if (connecting) {
     return <LoaderSegment/>;
   }
@@ -129,7 +162,7 @@ const Transfers = ({ direction, server }: TransfersProps) => {
     <>
       <TransfersHeader 
         direction={direction} 
-        transfers={transfers} 
+        transfers={filteredTransfers} 
         server={server}
         onRetryAll={retryAll}
         retrying={retrying}
@@ -137,10 +170,12 @@ const Transfers = ({ direction, server }: TransfersProps) => {
         cancelling={cancelling}
         onRemoveAll={removeAll}
         removing={removing}
+        fileFilter={fileFilterOption}
+        onChangeFileFilter={setFileFilterOption}
       />
-      {transfers.length === 0 
+      {filteredTransfers.length === 0 
         ? <PlaceholderSegment icon={direction} caption={`No ${direction}s to display`}/>
-        : transfers.map((user, index) => 
+        : filteredTransfers.map((user, index) => 
           <TransferGroup 
             key={index} 
             direction={direction} 

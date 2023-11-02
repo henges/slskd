@@ -14,10 +14,10 @@ import {
   Progress,
   Button,
 } from 'semantic-ui-react';
-import { Direction as TransferDirection, TransferFile } from '../../types/transfers';
+import { Direction as TransferDirection, TransferFile, TransferState } from '../../types/transfers';
 import Div from '../Shared/Div';
 
-const getColor = (state: string): {color?: SemanticCOLORS} => {
+const getColor = (state: TransferState): {color?: SemanticCOLORS} => {
   switch(state) {
   case 'InProgress':
     return { color: 'blue' }; 
@@ -26,7 +26,6 @@ const getColor = (state: string): {color?: SemanticCOLORS} => {
   case 'Requested':
   case 'Queued, Locally':
   case 'Queued, Remotely':
-  case 'Queued':
     return {};
   case 'Initializing':
     return { color: 'teal' };
@@ -35,10 +34,10 @@ const getColor = (state: string): {color?: SemanticCOLORS} => {
   }
 };
 
-const isRetryableState = (state: string) => getColor(state).color === 'red';
-const isQueuedState = (state: string) => state.includes('Queued');
+const isRetryableState = (state: TransferState) => getColor(state).color === 'red';
+const isQueuedState = (state: TransferState) => state.includes('Queued');
 
-const formatBytesTransferred = ({ transferred, size }: {transferred: number, size: number }) => {
+const formatBytesTransferred = ({ transferred, size }: {transferred: number, size: number}) => {
   const [s, sExt] = formatBytes(size, 1).split(' ');
   const t = formatBytesAsUnit(transferred, 1, sExt);
 
@@ -94,9 +93,15 @@ const TransferList = ({directoryName, files, onRetryRequested, onSelectionChange
         size='small' 
         className='filelist-header'
       >
-        <Icon name={isFolded ? 'folder' : 'folder open'}
-          link
-          onClick={() => toggleFolded()}/>{directoryName}
+        <span>
+          <Icon name={isFolded ? 'folder' : 'folder open'}
+            link
+            onClick={() => toggleFolded()}/>
+        </span>
+        <span>{directoryName}</span>
+        <span style={{ fontSize: "0.9em", color: "grey", marginLeft: "5px" }}>
+          ({files.length} files)
+        </span>
       </Header>
       {!isFolded ?
         <List>

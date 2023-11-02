@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export interface DivProps extends Record<string, unknown> {
+export interface DivProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
   hidden?: boolean,
   children?: ReactNode
 }

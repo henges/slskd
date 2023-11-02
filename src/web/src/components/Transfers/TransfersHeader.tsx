@@ -12,7 +12,8 @@ import {
 
 import ShrinkableDropdownButton from '../Shared/ShrinkableDropdownButton';
 import { isStateCancellable, isStateRetryable } from '../../lib/transfers';
-import { Direction, TransferFile, UserTransfers } from '../../types/transfers';
+import { Direction, TransferErrorStates, TransferFile, TransferQueuedStates, UserTransfers } from '../../types/transfers';
+import { FileFilterOption } from './Transfers';
 
 type RetryOption = "Errored" | "Cancelled" | "All"
 
@@ -23,10 +24,7 @@ type CancelOption = "All" | "Queued" | "In Progress"
 const getRetryableFiles = (files: TransferFile[], retryOption: RetryOption) => {
   switch (retryOption) {
   case "Errored":
-    return files.filter(file => 
-      ['Completed, TimedOut', 
-        'Completed, Errored', 
-        'Completed, Rejected'].includes(file.state));
+    return files.filter(file => !!TransferErrorStates.find(s => s === file.state));
   case "Cancelled":
     return files.filter(file => file.state === 'Completed, Cancelled');
   case "All":
@@ -73,6 +71,8 @@ export interface TransfersHeaderParams {
   cancelling: boolean, 
   onRemoveAll: (transfers: TransferFile[]) => Promise<void>,
   removing: boolean,
+  fileFilter: FileFilterOption,
+  onChangeFileFilter: (f: FileFilterOption) => void,
 }
 
 const TransfersHeader = ({ 
@@ -85,6 +85,8 @@ const TransfersHeader = ({
   cancelling = false, 
   onRemoveAll,
   removing = false,
+  fileFilter,
+  onChangeFileFilter
 }: TransfersHeaderParams) => {
   const [removeOption, setRemoveOption] = useState<RemoveOption>("Succeeded");
   const [cancelOption, setCancelOption] = useState<CancelOption>("All");
@@ -111,6 +113,24 @@ const TransfersHeader = ({
     <Segment className='transfers-header-segment' raised>
       <Div className="transfers-segment-icon"><Icon name={direction} size="big"/></Div>
       <Div hidden={empty} className="transfers-header-buttons">
+        <ShrinkableDropdownButton
+          icon='filter'
+          mediaQuery='(max-width: 715px)'
+          onClick={() => null}
+          disabled={working || empty}
+          loading={removing}
+          options={[
+            { key: 'all', text: "All", value: "ALL" },
+            { key: 'succeeded', text: "Succeeded", value: "SUCCEEDED" },
+            { key: 'in_progress', text: "In Progress", value: "IN_PROGRESS" },
+            { key: 'errored', text: "Errored", value: "ERRORED" },
+            { key: 'incomplete', text: "Incomplete", value: "INCOMPLETE" },
+          ]}
+          onChange={(_, data) => onChangeFileFilter(data.value as FileFilterOption)}
+        >
+          Filter (current: {fileFilter == "IN_PROGRESS" ? "in progress" : `${fileFilter.toLowerCase()}`})
+        </ShrinkableDropdownButton>
+        <Nbsp/>
         <ShrinkableDropdownButton
           hidden={direction === 'upload'}
           color='green'

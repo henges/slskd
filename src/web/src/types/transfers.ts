@@ -35,5 +35,12 @@ export interface TransferFile {
     percentComplete:  number;
 }
 
-export type TransferState = "Requested" | "Queued, Remotely" | "Queued, Locally" | "Initializing" | "InProgress" 
-    | "Completed, Succeeded" | "Completed, Cancelled" | "Completed, TimedOut" | "Completed, Errored" | "Completed, Rejected"
+export const TransferQueuedStates = ["Queued, Remotely", "Queued, Locally"] as const;
+
+export type TransferQueuedState = typeof TransferQueuedStates[number];
+
+export const TransferErrorStates = ["Completed, TimedOut", "Completed, Errored", "Completed, Rejected"] as const;
+
+export type TransferErrorState = typeof TransferErrorStates[number];
+
+export type TransferState = "Requested" | TransferQueuedState | "Initializing" | "InProgress" | "Completed, Succeeded" | "Completed, Cancelled" | TransferErrorState;

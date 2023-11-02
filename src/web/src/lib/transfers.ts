@@ -1,4 +1,4 @@
-import { Direction, FileDownloadRequest, UserTransfers } from '../types/transfers';
+import { Direction, FileDownloadRequest, TransferState, UserTransfers } from '../types/transfers';
 import api from './api';
 
 
@@ -41,10 +41,10 @@ export const getPlaceInQueue = (username: string, id: string) => {
   return api.get(`/transfers/downloads/${encodeURIComponent(username)}/${encodeURIComponent(id)}/position`);
 };
 
-export const isStateRetryable = (state: string) =>
+export const isStateRetryable = (state: TransferState) =>
   state.includes('Completed') && state !== 'Completed, Succeeded';
 
-export const isStateCancellable = (state: string) =>
+export const isStateCancellable = (state: TransferState) =>
   ['InProgress', 'Requested', 'Queued', 'Queued, Remotely', 'Queued, Locally', 'Initializing'].find(s => s === state);
 
-export const isStateRemovable = (state: string) => state.includes('Completed');
+export const isStateRemovable = (state: TransferState) => state.includes('Completed');

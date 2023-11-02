@@ -95,9 +95,8 @@ const TransferGroup = ({user, direction}: TransferGroupProps) => {
       .map(s => {
         return JSON.parse(s) as FileInDirectory;
       })
-      .map(s => user.directories
-        .find(d => d.directory === s.directory)?.files
-        .find(f => f.filename === s.filename)
+      .flatMap(s => user.directories
+        .find(d => d.directory === s.directory)?.files.filter(f => f.filename === s.filename)
       )
       .filter(s => s !== undefined) as TransferFile[];
   }, [selections, user.directories])

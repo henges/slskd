@@ -1,4 +1,6 @@
 .vs
+.vscode
+.idea
 /src/slskd/bin/
 /src/slskd/obj/
 /src/slskd/wwwroot/

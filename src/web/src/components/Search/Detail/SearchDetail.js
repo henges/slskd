@@ -36,7 +36,7 @@ const SearchDetail = ({ search, creating, stopping, removing, disabled, onCreate
   const [hideNoFreeSlots, setHideNoFreeSlots] = useState(false);
   const [foldResults, setFoldResults] = useState(false);
   const [resultFilters, setResultFilters] = useState('');
-  const [displayCount, setDisplayCount] = useState(5);
+  const [displayCount, setDisplayCount] = useState(50);
 
   // when the search transitions from !isComplete -> isComplete,
   // fetch the results from the server
