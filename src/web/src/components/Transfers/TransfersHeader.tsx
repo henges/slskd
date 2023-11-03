@@ -8,12 +8,14 @@ import {
 import {
   Div,
   Nbsp,
+  ShrinkableButton,
 } from '../Shared';
 
 import ShrinkableDropdownButton from '../Shared/ShrinkableDropdownButton';
 import { isStateCancellable, isStateRetryable } from '../../lib/transfers';
 import { Direction, TransferErrorStates, TransferFile, TransferQueuedStates, UserTransfers } from '../../types/transfers';
 import { FileFilterOption } from './Transfers';
+import { callMetadataSyncer } from '../../lib/metadata-syncer';
 
 type RetryOption = "Errored" | "Cancelled" | "All"
 
@@ -91,6 +93,7 @@ const TransfersHeader = ({
   const [removeOption, setRemoveOption] = useState<RemoveOption>("Succeeded");
   const [cancelOption, setCancelOption] = useState<CancelOption>("All");
   const [retryOption, setRetryOption] = useState<RetryOption>("Errored");
+  const [callingSyncer, setCallingSyncer] = useState<boolean>(false);
 
   const files = useMemo(() => {
     const files = transfers.reduce((acc: TransferFile[], username) => {
@@ -106,6 +109,12 @@ const TransfersHeader = ({
     return files.filter(file => file.direction.toLowerCase() === direction);
   }, [transfers, direction]);  
 
+  const callSyncer = async () => {
+    setCallingSyncer(true);
+    await callMetadataSyncer();
+    setCallingSyncer(false);
+  }
+
   const empty = files.length === 0;
   const working = retrying || cancelling || removing;
 
@@ -113,6 +122,15 @@ const TransfersHeader = ({
     <Segment className='transfers-header-segment' raised>
       <Div className="transfers-segment-icon"><Icon name={direction} size="big"/></Div>
       <Div hidden={empty} className="transfers-header-buttons">
+        <ShrinkableButton
+          icon='refresh'
+          mediaQuery='(max-width: 715px)'
+          disabled={callingSyncer || working || empty}
+          loading={callingSyncer}
+          onClick={() => callSyncer()}
+        >
+          Call metadata-syncer
+        </ShrinkableButton>
         <ShrinkableDropdownButton
           icon='filter'
           mediaQuery='(max-width: 715px)'
